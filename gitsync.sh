@@ -6,7 +6,6 @@
 #fi
 
 parse_target() {
-
     if [[ $1 == *':'* ]] # If taget is on a different host
     then
         IFS=':' read -a arr <<< "$1"
@@ -19,27 +18,22 @@ parse_target() {
     fi
 }
 
-GIT_FROM=$( parse_target $1 )
-echo ${GIT_FROM[*]}
 
-GIT_TO=$( parse_target $2 )
-echo ${GIT_TO[*]}
+GIT_FROM=(`parse_target $1`)
+#echo "From:" "${GIT_FROM[@]}"
+GIT_TO=(`parse_target $2`)
+#echo "To:" "${GIT_TO[@]}"
 
-# Merge what git remotes locally and on remote, and remove duplicates.
-TRACKED=("${GIT_FROM[@]}" "${GIT_TO[@]}")
-echo ${TRACKED[*]}
+TRACKED=( "${GIT_FROM[@]}" "${GIT_TO[@]}" )
+#echo "Tracked:" "${TRACKED[@]}"
 
-#declare -A UNIQUE
-# Store the values of TRACKED in UNIQUE as keys.
-#for k in "${TRACKED[@]}"; do UNIQUE["$k"]=1; done
-# Extract the keys.
-#TRACKED=("${!UNIQUE[@]}")
-#echo ${TRACKED[*]}
+declare -A UNIQUE # Use an associative array to remove duplicates
+for k in "${TRACKED[@]}"; do UNIQUE["$k"]=1; done
+TRACKED=("${!UNIQUE[@]}")
+echo "Unique:" ${TRACKED[@]}
 
-#printf 'Ignoring files tracked by git:\n'
-#printf '%s\n' ${TRACKED[*]} ''
 
 # Explicityly construct string with many flags for excluding the traved files.
-#EXCLUDE=("${TRACKED[@]/#/--exclude }")
-#SOURCE="$OZZY:/home/exjobb_vikblom/signature-method/results/"
-#rsync -avz --exclude "*.p" ${EXCLUDE[*]} $SOURCE .
+EXCLUDE=("${TRACKED[@]/#/--exclude }")
+echo "Excluding:" ${EXCLUDE[@]}
+rsync --dry-run -avz --cvs-exclude ${EXCLUDE[@]} $1 $2
