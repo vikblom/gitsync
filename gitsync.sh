@@ -36,4 +36,12 @@ echo "Unique:" ${TRACKED[@]}
 # Explicityly construct string with many flags for excluding the traved files.
 EXCLUDE=("${TRACKED[@]/#/--exclude }")
 echo "Excluding:" ${EXCLUDE[@]}
-rsync --dry-run -avz --cvs-exclude ${EXCLUDE[@]} $1 $2
+rsync -avz --cvs-exclude ${EXCLUDE[@]} $1 $2
+
+
+# Hackless exclusion of multiple files as --exclude={file1,file2,...}
+# but it doesn't work.
+
+#DELIM="--exclude={"$(IFS=, ; echo "${TRACKED[*]}")"}"
+#echo "Delimited:" $DELIM
+#rsync --dry-run -avz --cvs-exclude $DELIM $1 $2
